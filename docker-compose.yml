@@ -24,7 +24,7 @@ services:
       es:
         condition: service_healthy
     build: ./es-init
-    container_name: es_init
+    container_name: es-init
     environment:
       ELASTICSEARCH_URL: http://es:9200
   kibana:
