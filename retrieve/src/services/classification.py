@@ -1,5 +1,7 @@
 from sklearn.model_selection import train_test_split
 from datasets import Dataset, DatasetDict, load_metric
+
+from transformers.optimization import Adafactor, AdafactorSchedule
 from transformers import AutoTokenizer, DataCollatorWithPadding, pipeline, \
     AutoModelForSequenceClassification, TrainingArguments, Trainer
 
@@ -22,8 +24,8 @@ class ClassificationModel:
             "sentiment-analysis", model=self.model, tokenizer=self.tokenizer)
 
     @staticmethod
-    def training_args_builder(output_dir="../models/", learning_rate=2e-3, train_batch_size=16,
-                              eval_batch_size=16, num_train_epochs=10, weight_decay=0.01):
+    def training_args_builder(output_dir="../models/", learning_rate=2e-3, train_batch_size=32,
+                              eval_batch_size=32, num_train_epochs=30, weight_decay=0.01):
         return TrainingArguments(
             output_dir=output_dir,
             per_device_train_batch_size=train_batch_size,
@@ -31,6 +33,7 @@ class ClassificationModel:
             weight_decay=weight_decay,
             learning_rate=learning_rate,
             num_train_epochs=num_train_epochs,
+            save_steps=1_000
         )
 
     def train(self, dataset, training_args=None):
@@ -52,16 +55,19 @@ class ClassificationModel:
 
         data_collator = DataCollatorWithPadding(tokenizer=self.tokenizer)
 
-        trainer = Trainer(
+        optimizer = Adafactor(
+            self.model.parameters(), scale_parameter=True, relative_step=True, warmup_init=True, lr=None)
+        lr_scheduler = AdafactorSchedule(optimizer)
+
+        Trainer(
             eval_dataset=tokenized_data["test"],
             train_dataset=tokenized_data["train"],
             model=self.model,
             args=training_args,
             tokenizer=self.tokenizer,
             data_collator=data_collator,
-        )
-
-        trainer.train()
+            optimizers=(optimizer, lr_scheduler),
+        ).train()
 
     def predict(self, texts):
         self.classifier.model.to('cpu')
@@ -70,9 +76,8 @@ class ClassificationModel:
 
 
 if __name__ == '__main__':
-
     normalizer = hazm.Normalizer(token_based=True)
-    df = pd.read_csv('../../resources/src-dataset.csv')
+    df = pd.read_csv('../../resources/shahnameh-dataset.csv')
 
     df['text'] = df.text.apply(normalizer.normalize)
 

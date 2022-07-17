@@ -21,6 +21,7 @@ class LinkDocumentsAnalyzer:
         self.pagerank = pd.DataFrame([
             {'element': self.id2element[k], 'rank': v} for k, v in nx.pagerank_numpy(self.graph, alpha=0.9).items()
         ])
+        self.pagerank = self.pagerank.sort_values('rank', ascending=False)
 
         hubs, authorities = nx.hits(self.graph, max_iter=1e3)
 
@@ -28,6 +29,7 @@ class LinkDocumentsAnalyzer:
             {'element': self.id2element[k], 'hubs': vh, 'authorities': va}
             for (k, vh), (_, va) in zip(hubs.items(), authorities.items())
         ])
+        self.hitsrank = self.hitsrank.sort_values('hubs', ascending=False)
 
     @staticmethod
     def create_position_matrix(documents, elements, threshold):
@@ -73,14 +75,20 @@ class LinkDocumentsAnalyzer:
     def get_hitsrank(self, element):
         return self.hitsrank[self.hitsrank.element.str.contains(element)]
 
+    def get_pageranks(self, n):
+        return self.pagerank[:n]
+
+    def get_hitsranks(self, n):
+        return self.hitsrank[:n]
+
 
 if __name__ == '__main__':
     normalizer = hazm.Normalizer(token_based=True)
 
-    poems = pd.read_csv('../resources/src-dataset.csv')['text']
+    poems = pd.read_csv('../../resources/shahnameh-dataset.csv')['text']
     poems = poems.apply(normalizer.normalize)
 
-    chars = pd.read_csv('../resources/shahnameh_characters.csv')['regex']
+    chars = pd.read_csv('../../resources/shahnameh_characters.csv')['regex']
     chars = chars.apply(normalizer.normalize)
 
     analyzer = LinkDocumentsAnalyzer(poems, chars, 1, 5)
