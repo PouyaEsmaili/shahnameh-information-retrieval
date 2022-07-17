@@ -1,0 +1,24 @@
+service Search {
+  rpc retrieve(SearchRequest) returns (SearchResponse) {}
+}
+
+message SearchRequest {
+  required string query = 1;
+  required string method = 2;
+}
+
+message SearchResponse {
+  repeated string results = 1;
+}
+
+message DocumentResponse {
+  required Document document = 1;
+  required double similarity = 2;
+}
+
+message Document {
+  required string id = 1;
+  required string mesra1 = 2;
+  required string mesra2 = 3;
+  required string label = 4;
+}
