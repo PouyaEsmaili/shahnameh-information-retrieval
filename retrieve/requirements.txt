@@ -1,0 +1,11 @@
+hazm
+numpy
+networkx
+pandas
+torch
+scikit-learn
+matplotlib
+transformers
+datasets
+gensim
+tqdm
