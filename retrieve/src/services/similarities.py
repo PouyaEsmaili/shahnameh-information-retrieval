@@ -113,13 +113,16 @@ class Similarities:
         embedding = embedder([text])
         name = embedder.__name__[4:]
 
+        offset = 0
+
         indexes, similarities = [], []
         for file_name in filter(lambda file: file.startswith(name), os.listdir(self.directory)):
-            _idx, _sim = self.get_similar_by_cosine_distance(
-                embedding, self.load_model(self.directory, file_name), n)
+            batch_embeddings = self.load_model(self.directory, file_name)
+            _idx, _sim = self.get_similar_by_cosine_distance(embedding, batch_embeddings, n)
 
             similarities.extend(_sim)
-            indexes.extend(_idx + len(indexes))
+            indexes.extend(_idx + offset)
+            offset = offset + len(batch_embeddings)
 
         similarities = np.array(similarities)
         indexes = np.array(indexes)
