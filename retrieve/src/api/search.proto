@@ -1,24 +1,70 @@
+syntax = "proto3";
+
+package api;
+
 service Search {
-  rpc retrieve(SearchRequest) returns (SearchResponse) {}
+  rpc Retrieve(SearchRequest) returns (SearchResponse) {}
 }
 
 message SearchRequest {
-  required string query = 1;
-  required string method = 2;
+  string query = 1;
 }
 
 message SearchResponse {
-  repeated string results = 1;
+  map<string, DocumentResponse> search_results = 1;
+  ClassificationResponse classification = 2;
+  ClusteringResponse clustering = 3;
 }
 
 message DocumentResponse {
-  required Document document = 1;
-  required double similarity = 2;
+  repeated DocumentResponseItem items = 1;
+}
+
+message ClassificationResponse {
+  repeated ClassificationResponseItem items = 1;
+}
+
+message ClassificationResponseItem {
+  uint32 id = 1;
+  string label = 2;
+  double similarity = 3;
+}
+
+message ClusteringResponse {
+  uint32 cluster_id = 1;
+  repeated ClusteringResponseItem most_repeated_labels = 2;
+  repeated DocumentResponseItem documents_in_cluster = 3;
+}
+
+message ClusteringResponseItem {
+  uint32 id = 1;
+  string label = 2;
+  uint32 count = 3;
+}
+
+message ImportantNameResponse {
+  repeated ImportantNameResponseItem items = 1;
+}
+
+message ImportantNameResponseItem {
+  uint32 id = 1;
+  string name = 2;
+  string type = 3;
+  double page_rank = 4;
+  double hits_rank = 5;
+
+  repeated ImportantNameResponseItem close_names = 6; // Optional for showing close names
+}
+
+message DocumentResponseItem {
+  Document document = 1;
+  string reason_of_choice = 2;
+  double similarity = 3;
 }
 
 message Document {
-  required string id = 1;
-  required string mesra1 = 2;
-  required string mesra2 = 3;
-  required string label = 4;
+  uint32 id = 1;
+  string mesra1 = 2;
+  string mesra2 = 3;
+  string label = 4;
 }

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package api;
+
+service Expand {
+  rpc Expand(ExpandRequest) returns (ExpandResponse) {}
+}
+
+message ExpandRequest {
+  string query = 1;
+}
+
+message ExpandResponse {
+  repeated ExpandResponseItem items = 1;
+}
+
+message ExpandResponseItem {
+  string expanded = 1;
+  double confidence = 2;
+}
