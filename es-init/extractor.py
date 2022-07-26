@@ -1,7 +1,10 @@
 import io
+
+from elasticsearch import Elasticsearch
 from tqdm import tqdm
 from bs4 import BeautifulSoup
-from elasticsearch import Elasticsearch
+
+import pandas as pd
 
 with io.open('data/shahnameh-ferdosi.htm', 'r', encoding='utf-8') as file:
     html = file.read()
@@ -64,3 +67,45 @@ class Extractor:
             print('Index already exists')
         except:
             self.extract()
+
+
+class HTML2CSV:
+
+    @staticmethod
+    def extract():
+
+        print('Extracting...')
+        soup = BeautifulSoup(html, 'html.parser')
+        poems_and_labels = soup.find_all(filter_poems_labels)
+
+        skip_labels = {'مشخصات کتاب', 'معرفی'}
+        buffered_text = None
+
+        dataset = []
+
+        label = None
+        for item in tqdm(poems_and_labels):
+
+            if filter_labels(item):
+                label = item.get_text()
+            elif not (filter_poems(item) and label) or label in skip_labels:
+                continue
+
+            text = item.get_text()
+            if '****' not in text:
+                buffered_text = text
+                continue
+
+            if buffered_text:
+                text = ' '.join([buffered_text, text])
+                buffered_text = None
+
+            mesras = [sp.strip() for sp in text.split('****')]
+            dataset.append({'text': ' [SEP] '.join(mesras), 'labels': label})
+
+        df = pd.DataFrame(dataset)
+        df.to_csv('data/shahnameh-labeled.csv', index=False)
+
+
+if __name__ == '__main__':
+    HTML2CSV.extract()

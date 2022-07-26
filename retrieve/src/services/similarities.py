@@ -59,7 +59,7 @@ class Similarities:
         ]
 
         for embedder in embedders:
-            for i, batch in tqdm.tqdm(enumerate(batch_series(embedder(self.documents.tolist()), 10_000))):
+            for i, batch in tqdm.tqdm(enumerate(batch_series(embedder(self.documents.tolist()), 5_000))):
                 self.save_model(batch, self.directory, f'{embedder.__name__[4:]}.{i}')
 
         self.save_model(self.pipe, self.directory, 'pipeline')
